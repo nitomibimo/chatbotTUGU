@@ -1,0 +1,257 @@
+active: true
+intents:
+    init:
+        initial: true
+        type: text
+        classifier:
+            nlu: reminder
+            match: createReminder
+    toTrialBhs:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toTrialBhs"
+    email:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "email"
+        attributes:
+            email:
+                nlu: telkomseliotnl
+                path: email
+    phone:
+        classifier:
+            nlu: phonenumber
+        attributes:
+            phone:
+                nlu: phonenumber
+    company:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "kantor"
+        attributes:
+            kantor:
+                nlu: telkomseliotnl
+                path: kantor
+    status:
+        type: command
+        condition: content == "status"
+    askTrialYes:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="satu"
+    askTrialNo:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="dua"
+    reenter:
+        type: command
+        condition: content == "reenter"
+    
+states:
+    initTrialBhs:
+        initial: true
+        transitions:
+            create:
+                fallback: true
+                
+    create:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   name: trialTextBeforeVideoBhs
+            -   name: trialVideoBhs
+            -   name: askEmailFutureActionBhs
+            # -   name: makeSchedule
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmailTrial:
+                condition: "context.email"
+            create:
+                fallback: true
+            
+        initial: true
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmailTrial:
+        enter: mapper
+        action:
+            -   name: scheduleRun                
+            -   name: askPhoneFutureActionBhs
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhoneTrial:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhoneTrial:
+                condition: "context.phone"
+            finishAddEmailTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhoneTrial:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   
+                name: failedProviderActionBhs
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionBhs
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhoneTrial:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhoneTrial:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhoneTrial:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   name: askCompanyFutureActionBhs
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailBhs:
+                condition: "context.company"
+            finishAddPhoneTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    stateCallApiEmailBhs:
+        action:
+            -
+                name: callApiAskingEmailBhs
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result)
+                                
+        transitions:
+            failedEmailBhs:
+                condition: '!payload.result'
+            finishRecordUser:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    failedEmailBhs:
+        end: true
+        action:
+         - name: failApi
+    finishRecordUser:
+        action:
+            -
+                name: sendLinkFutureActionBhs
+            -
+                isNewAction: false
+                name: closeFutureActionBhs
+            -
+                isNewAction: false
+                name: closeLinkFutureActionBhs    
+        end: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px        
+actions:
+    makeSchedule:
+        type: text
+        options:
+            text: "Kamu akan diingatkan dalam 1 menit ke depan"
+
+    scheduleRun:
+        type: schedule
+        options:
+            id : remind-me
+            command: add
+            message:
+                type: command
+                content: startScheduleRun
+            start: $(context.dateStart)
+            end: $(context.dateStart)
+            freqType: minute
+            freqInterval: 5
+    trialVideoBhs:
+        type: text
+        options:
+            text: https://www.youtube.com/watch?v=PIVNoRduDZg 
+        # type: template
+        # options:
+        #     type: video
+        #     items:
+        #         originalContentUrl: https://qubicle.id/temp/7bc39c68aa0981ca848fcae6061097a4.mp4
+        #         previewImageUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/uploads/images/20180524163248_5b06e930818e5.jpg
+    trialTextBeforeVideoBhs:
+        type: text
+        options:
+            text: 'Via akan memutarkan video yang bisa menjelaskan lebih dalam mengenai IOT Control Center.'
+    askEmailFutureActionBhs:
+        type: text
+        options:
+            text: ' Before we continue, I will need you to input your contact information. Please enter your email address below (e.g abcde@example.com) '
+    callApiAskingEmailBhs:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                email: $(context.email)
+                phone: $(context.phone)
+                company: $(context.company)
+                type: 1
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/lead/register '
+    failApi:
+        type: text
+        options:
+            text: Gagal call API
+    failedProviderActionBhs:
+        type: text
+        options:
+            text: 'You have entered an invalid phone number. Could you please re-enter a valid phone number?'
+    askPhoneFutureActionBhs:
+        type: text
+        options:
+            text: ' Your email,$(context.email).Please enter your phone number. (e.g 0812775820) '
+    askCompanyFutureActionBhs:
+        type: text
+        options:
+            text: ' Your phone number,$(context.phone). Please provide the name of your company. (e.g PT. Naga Terbang) '
+    sendLinkFutureActionBhs:
+        type: text
+        options:
+            text: " Your company name, $(context.company). You are almost done! Please fill in the trial form here.\n https://telkomsel.m2m.com/form/referral/request"
+    closeFutureActionBhs:
+        type: text
+        options:
+            text: ' Thank you for taking your time to talk to Via. It was a pleasure to assist you and I hope to speak to you again soon.'
+    closeLinkFutureActionBhs:
+        type: text
+        options:
+            text: 'For information on our other products, visit https://telkomseliot.com/fleesight  '

@@ -1,0 +1,137 @@
+intentIntro:
+    type: keyword
+    options:
+        keywords:
+            greet:
+                - hi
+                - hallo
+                - halo
+                - hai
+                - siang
+                - sore
+                - malam
+                - h
+                - hei
+                - hay
+                - test
+                - cek
+                - hello
+            cancel:
+                - exit
+            english:
+                - exit
+intentBack:
+    type: keyword
+    options:
+        keywords:
+            baik:
+                - ya
+                - ok
+                - baiklah
+                - baik
+                - iya
+                - tentu
+            cancel:
+                - exit
+            english:
+                - exit
+yesno:
+    type: keyword
+    options:
+        keywords:
+            karir:
+                - karir
+                - career
+                - ada lowongan engga
+            sponsor:
+                - sponsor
+                - sponsorship
+                - mau nyari sponsor
+            network:
+                - network
+                - cabang tugu di kota mana aja?
+                - cabang tugu
+                - di kota aku ada cabang tugu engga?
+            annual:
+                - annual
+                - annual report
+                - report
+                - laporan tahunan
+                - laporan tutup buku
+                - laporan tahun ini
+pilihBahasa:
+       type: keyword
+       options:
+           keywords:
+               bahasaIndo:
+                   - indo
+                   - indon
+                   - inodnesia
+                   - indonesai
+                   - inodnesai
+                   - inod
+                   - indonesia
+                   - bahasa indo
+                   - bahasa indonesia
+                   - bahasa indon
+                   - bahasa
+               bahasaEnglish:
+                   - english
+                   - inggris
+                   - bahasa inggris
+                   - bahasa english
+                   - englis
+                   - ingris
+                   - bahasa ingris
+                   - bahasa englis
+                   - Main Menu 
+answerpayload:
+    type: keyword
+    options:
+        keywords:
+            'jawabanSatu':
+                - '1'
+                - 'satu'
+            'jawabanDua':
+                - '2'
+                - 'dua'
+telkomseliotnl:
+    type: nl
+    options:
+        nluId: "tlkmsl-iot:telkomsel-iot"
+        token: "7aef2353-ef3e-4cec-90eb-325a5f1021ee"
+        output: value
+        threshold: 0.5
+        flatten: true
+trippytripnl:
+    type: nl
+    options:
+        nluId: "tugu:testbotbaru"
+        token: "143fa9ab-bbe1-4a96-9885-4d7e29831f4a"
+        output: value
+        threshold: 0.5
+        flatten: true
+email:
+    type: regex
+    options:
+        regex: '^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'
+        index: '0'
+# phonenumber:
+#     type: regex
+#     options:
+#         regex: '^(\+0?1\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$'
+#         index: '0'
+phonenumber:
+    type: method
+    method: validatePhone
+
+confidenceLevel:
+    type: method
+    method: confidenceLevel
+
+reminder:
+    type: keyword
+    options:
+      keywords:
+        createReminder:
+            - buat reminder

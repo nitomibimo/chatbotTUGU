@@ -1,0 +1,171 @@
+
+        active: true
+        expire: '5'
+        intents:
+            toEnglish:
+                type: command
+                initial: true
+                fallback: false
+                condition: content == "toEnglish"
+            reenter:
+                type: command
+                condition: content == "reenter"
+            mainMenuIntentEng:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.type=="satu"
+            shortCutIntent:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.type=="dua"
+            status:
+                type: command
+                condition: content == "status"
+        states:
+            init:
+                transitions:
+                    stateCallApi:
+                        fallback: true
+                initial: true
+                style:
+                    top: 110px
+                    left: 87px
+            stateCallApi:
+                action:
+                    -
+                        name: callApi
+                    -
+                        name: command
+                        options:
+                            command: status
+                            payload:
+                                result: $(result.data)
+                                
+                transitions:
+                    failed:
+                        condition: '!payload.result'
+                    finish:
+                        condition: 'payload.result'
+                        mapping:
+                             context.result: payload.result
+            finish:
+                enter: mapper
+                action:
+                    -   name: scheduleRun
+                    -   name: chooseShortCutOrControlCenterEng
+                    -   isNewAction: false
+                        name: showCarouselIoTStepOneEng
+                        
+                transitions:
+                    toMainMenuFromEnglish:
+                        condition: intent == "mainMenuIntentEng"
+                    toShortCutEnglish:
+                        condition: intent == "shortCutIntent"
+                    finish:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            failed:
+                action:
+                    -
+                        name: failApi
+                end: true
+            toMainMenuFromEnglish:
+                action:
+                    -
+                        name: mainMenuActionEng
+                    -
+                        isNewAction: false
+                        name: toMainMenuEng
+                end: true
+                style:
+                    top: 40px
+                    left: 484px
+            toShortCutEnglish:
+                action:
+                    -
+                        name: shortCutAction
+                    -
+                        isNewAction: false
+                        name: toShortCutActionEng
+                end: true
+                style:
+                    top: 40px
+                    left: 484px
+        actions:
+            makeSchedule:
+                type: text
+                options:
+                    text: "Calling API.."
+            callApi:
+                type: api
+                options:
+                    method: POST
+                    headers:
+                        api_id: 1
+                        api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+                    body:
+                        limit_start: 0
+                        limit_end: 2
+                        sort_type: asc
+                        english: true
+                    uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/1'
+            failApi:
+                type: text
+                options:
+                    text: Gagal call API
+            showAPIResult:
+                type: text
+                options:
+                    text: $(result)
+            chooseShortCutOrControlCenterEng:
+                type: text
+                options:
+                    text: 'Okay. How can I help? Here are a few things that you may want to explore.'
+            mainMenuActionEng:
+                type: text
+                options:
+                    text: >-
+                        This is the IoT Control Center, a technological innovation that helps transform your business efficiently and effectively. For
+                        more information, please select one of the options below. 
+            shortCutAction:
+                type: text
+                options:
+                    text: "   I am here to assist you in fulfilling your business needs and implement it as soon as possible. To do so, we require some of your personal information and our sales engineer will contact you soon."
+            showCarouselIoTStepOneEng:
+                type: template
+                options:
+                    type: carousel
+                    data: $(context.result)
+                    template:
+                        title: "$[title]"
+                        text: "$[text]"
+                        thumbnailImageUrl: "$[image_url]"
+                        actions:
+                          - type: postback
+                            label: choose
+                            payload:
+                               type: "$[payload]"
+            toShortCutActionEng:
+                type: command
+                options:
+                    command: toShortCutEng
+            toMainMenuEng:
+                type: command
+                options:
+                    command: toMainMenuEnglish
+            scheduleRun:
+                type: schedule
+                options:
+                    id : remind-me
+                    command: add
+                    message:
+                        type: command
+                        content: startScheduleRun
+                    start: $(context.dateStart)
+                    end: $(context.dateStart)
+                    freqType: minute
+                    freqInterval: 5

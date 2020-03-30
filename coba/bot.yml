@@ -1,0 +1,45 @@
+schema: kata.ai/schema/kata-ml/1.0
+name: testbotbaru
+desc: My First Bot
+version: 0.0.80
+flows:
+    greeting: $include(./flows/greeting.yml)
+    fallback: $include(./flows/fallback.yml)
+    handover: $include(./flows/handover.yml)
+    bahasa: $include(./flows/id/bahasa.yml)
+    shortCutBhs: $include(./flows/id/shortCutBhs.yml)
+    mainMenuBhs: $include(./flows/id/mainMenuBhs.yml)
+    benefitBhs: $include(./flows/id/benefitBhs.yml)
+    featureBhs: $include(./flows/id/featureBhs.yml)
+    topologyBhs: $include(./flows/id/topologyBhs.yml)
+    trialBhs: $include(./flows/id/trialBhs.yml)
+    english: $include(./flows/en/english.yml)
+    mainMenuEng: $include(./flows/en/mainMenuEng.yml)
+    shortCutEng: $include(./flows/en/shortCutEng.yml)
+    benefitEng: $include(./flows/en/benefitEng.yml)
+    featureEng: $include(./flows/en/featureEng.yml)
+    topologyEng: $include(./flows/en/topologyEng.yml)
+    trialEng: $include(./flows/en/trialEng.yml)
+    remind: $include(./flows/remind.yml)
+nlus: $include(./nlu.yml)
+methods:
+    writeLoc(ctx): ' var str = ctx.context.location; ctx.context.location = str.toLowerCase(); return ctx '
+    validatePhone(message):
+        code: $include(./method/parse_phone.js)
+        entry: parse
+    'confidenceLevel(message,context,data,options,config)':
+        code: 'function confidenceLevel(message, context, data, options, config) { if (message.content === "hi") return 1; return 0; }'
+        entry: confidenceLevel
+    mapper(ctx): >4-
+         let date = new Date(); let year = date.getFullYear(); let month = date.getMonth() + 1; let day = date.getDate(); let hour = date.getHours(); let minute = date.getMinutes(); let second = date.getSeconds();
+        let monthFormatted = month < 10 ? '0' + month : month; let dayFormatted = day < 10 ? '0' + day : day; let hourFormatted = hour < 10 ? '0' +
+        hour : hour; let minuteFormatted = minute < 10 ? '0' + minute : minute; let secondFormatted = second < 10 ? '0' + second : second;
+
+        minute += 5; minuteFormatted = minute < 10 ? '0' + minute : minute; ctx.context.dateStart = year + '-' + monthFormatted + '-' + dayFormatted +
+        ' ' + hourFormatted + ':' + minuteFormatted + ':' + secondFormatted;
+
+        minute += 9; minuteFormatted = minute < 10 ? '0' + minute : minute; ctx.context.dateEnd = year + '-' + monthFormatted + '-' + dayFormatted + '
+        ' + hourFormatted + ':' + minuteFormatted + ':' + secondFormatted; return ctx; 
+config: $include(./config.yml)
+tag: null
+id: 29ae1b58-eda1-4e16-87d7-bb222aafb446

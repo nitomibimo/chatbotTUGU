@@ -1,0 +1,278 @@
+active: true
+intents:
+    toMainMenuEnglish:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toMainMenuEnglish"
+    describeIoTIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="describeIot"
+    moreAboutIoTIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="moreAbout"
+    benefitIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="satu"
+    featureIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="dua"
+    topologyIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="tiga"
+    trialIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="empat"
+    status:
+        type: command
+        condition: content == "status"
+    reenter:
+        type: command
+        condition: content == "reenter"
+states:
+    init:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   name: showButtonChooseIntroductionOption
+           
+        transitions:
+            toDescribeIoTEng:
+                condition: intent == "describeIoTIntent"
+            toMoreAboutIoTEng:
+                condition: intent == "moreAboutIoTIntent"
+            init:
+                fallback: true
+        initial: true
+        style:
+            top: 110px
+            left: 87px
+    toDescribeIoTEng:
+        action:
+            -
+                name: describeIoTImageEng
+            -
+                isNewAction: false
+                name: describeIoTTextEng
+            -   
+                
+                name: callApiIotCC
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedIotCC:
+                condition: '!payload.result'
+            finishIotCC:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishIotCC:
+        enter: mapper
+        action:
+            -   
+                name: scheduleRun
+            -
+                name: showCarouselMoreAboutIoTEng
+        transitions:
+            toBenefitEng:
+                condition: intent == "benefitIntent"
+            toActionFutureEng:
+                condition: intent == "featureIntent"
+            toActionTopologyEng:
+                condition: intent == "topologyIntent"
+            toActionTrialEng:
+                condition: intent == "trialIntent"
+            finishIotCC:
+                    fallback: true
+        style:
+            top: 40px
+            left: 484px
+    toMoreAboutIoTEng:
+        action:
+            -
+                name: describeIoTTextEng
+            -   
+                
+                name: callApiIotCC
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedIotCC:
+                condition: '!payload.result'
+            finishIotCCMoreAbout:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishIotCCMoreAbout:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: showCarouselMoreAboutIoTEng        
+        transitions:
+            toBenefitEng:
+                condition: intent == "benefitIntent"
+            toActionFutureEng:
+                condition: intent == "featureIntent"
+            toActionTopologyEng:
+                condition: intent == "topologyIntent"
+            toActionTrialEng:
+                condition: intent == "trialIntent"
+            finishIotCCMoreAbout:
+                fallback: true
+        style:
+            top: 40px
+            left: 484px
+    toBenefitEng:
+        action:
+            -
+                name: toBenefitEng
+        transitions: {}
+        end: true
+        style:
+            top: 80px
+            left: 484px
+    toActionFutureEng:
+        action:
+            -
+                name: toActionFutureEng
+        transitions: {}
+        end: true
+        style:
+            top: 80px
+            left: 484px
+    toActionTopologyEng:
+        action:
+            -
+                name: toActionTopologyEng
+        transitions: {}
+        end: true
+        style:
+            top: 80px
+            left: 484px
+    toActionTrialEng:
+        action:
+            -
+                name: toActionTrialEng
+        transitions: {}
+        end: true
+        style:
+            top: 80px
+            left: 484px
+actions:
+    scheduleRun:
+        type: schedule
+        options:
+            id : remind-me
+            command: add
+            message:
+                type: command
+                content: startScheduleRun
+            start: $(context.dateStart)
+            end: $(context.dateStart)
+            freqType: minute
+            freqInterval: 5
+    describeIoTImageEng:
+        type: "template"
+        options:
+           type: "image"
+           items:    
+                originalContentUrl: 'http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/English Version/What-is-IOT-Control-Center.jpg'
+                previewImageUrl: 'http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/English Version/What-is-IOT-Control-Center.jpg'
+    describeIoTTextEng:
+        type: text
+        options:
+            text: 'Here are a few things that you may also be interested in'
+    showButtonChooseIntroductionOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: choose
+                text: For more information, please select one of the options below.
+                actions:
+                    -
+                        type: postback
+                        label: What is IoT Control Center
+                        payload:
+                            type: describeIot
+                    -
+                        type: postback
+                        label: More about IoT CC
+                        payload:
+                            type: moreAbout
+    callApiIotCC:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: true
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/2'
+    failApiIotCC:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResult:
+        type: text
+        options:
+            text: $(result)
+    showCarouselMoreAboutIoTEng:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                actions:
+                    - type: postback
+                      label: choose
+                      payload:
+                        type: "$[payload]"
+    toActionFutureEng:
+        type: command
+        options:
+            command: toFutureEng
+    toBenefitEng:
+        type: command
+        options:
+            command: toBenefitEnglish
+    toActionTopologyEng:
+        type: command
+        options:
+            command: toTopologyEng
+    toActionTrialEng:
+        type: command
+        options:
+            command: toTrialEng
+methods: {}

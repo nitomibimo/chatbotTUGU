@@ -1,0 +1,764 @@
+active: true
+intents:
+    toTopologyBhs:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toTopologyBhs"
+    email:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "email"
+        attributes:
+            email:
+                nlu: telkomseliotnl
+                path: email
+    phone:
+        classifier:
+            nlu: phonenumber
+        attributes:
+            phone:
+                nlu: phonenumber
+    company:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "kantor"
+        attributes:
+            kantor:
+                nlu: telkomseliotnl
+                path: kantor
+    benefitIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="satu"
+    featureIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="dua"
+    trialIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="tiga"
+    askTrialYes:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="one"
+    askTrialNo:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="two"
+    askSubscribtion:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="ciek"
+    askLastestInfo:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="duwo"
+    status:
+        type: command
+        condition: content == "status"
+    reenter:
+        type: command
+        condition: content == "reenter"
+states:
+    initTopologyBhs:
+        action:
+            -  
+                name: topologiImageBhs
+            -
+                isNewAction: false
+                name: topologyTextBeforeVideoBhs
+            -   
+                isNewAction: false
+                name: TopologyVideoBhs
+            -   
+                isNewAction: false
+                name: callApiAfterVideoBhs
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)            
+        transit:
+            context.result: 'null'
+        transitions:
+            failedAfterVideo:
+                condition: '!payload.result'
+            finishAfterVideo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishAfterVideo:
+        enter: mapper    
+        action:
+            -   name: scheduleRun
+            -   
+                isNewAction: false
+                name: topologyTextAfterVideoBhs
+            -   
+                isNewAction: false
+                name: showCarouselAfterVideoBhs
+        transitions:
+            toActionFeatureFeatureBhs:
+                condition: intent == "benefitIntent"
+            toActionFeatureTopologyBhs:
+                condition: intent == "featureIntent"
+            toActionFeatureTrialBhs:
+                condition: intent == "trialIntent"
+            initTopologyBhs:
+                fallback: true
+        initial: true
+        style:
+            top: 110px
+            left: 87px
+    toActionFeatureFeatureBhs:
+        action:
+            -
+                name: callApi
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedBeforeVideo:
+                condition: '!payload.result'
+            finishBenefit:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishBenefit:
+        enter: mapper
+        action:       
+            -
+                name: showCarouselBenefitBhs
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureOption
+        transitions: 
+            toAskEmailBhs:
+                condition: intent == "askTrialYes"
+            toAskEmailNoBhs:
+                condition: intent == "askTrialNo"
+            finishBenefit:
+                fallback: true
+        style:
+            top: 80px
+            left: 484px
+    toActionFeatureTopologyBhs:
+        action:
+            -
+                name: callApiBenefitFeatureBhs
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedBeforeVideo:
+                condition: '!payload.result'
+            finishBeforeVideo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishBeforeVideo:
+        enter: mapper
+        action:
+            -   name: scheduleRun       
+            -
+                name: showCarouselFeatureBhs
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureOption
+        transitions: 
+            toAskEmailBhs:
+                condition: intent == "askTrialYes"
+            toAskEmailNoBhs:
+                condition: intent == "askTrialNo"
+            initTopologyBhs:
+                fallback: true
+        style:
+            top: 80px
+            left: 484px
+    toActionFeatureTrialBhs:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   
+                name: askEmailFutureActionBhs
+
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmailTrial:
+                condition: "context.email"
+            toAskEmailBhs:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmailTrial:
+        enter: mapper
+        action:
+            -   name: askPhoneFutureActionBhs
+            -   name: scheduleRun                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhoneTrial:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhoneTrial:
+                condition: "context.phone"
+            finishAddEmailTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhoneTrial:
+        enter: mapper
+        action:
+            -   
+                name: failedProviderActionBhs
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionBhs
+            -   name: scheduleRun
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhoneTrial:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhoneTrial:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhoneTrial:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: askCompanyFutureActionBhs
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailBhs:
+                condition: "context.company"
+            finishaddphoneTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    toAskEmailBhs:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -   
+                name: askEmailFutureActionBhs
+
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmail:
+                condition: "context.email"
+            toAskEmailBhs:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmail:
+        enter: mapper
+        action:
+            -   name: askPhoneFutureActionBhs
+            -   name: scheduleRun                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhone:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhone:
+                condition: "context.phone"
+            finishAddEmail:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhone:
+        enter: mapper
+        action:
+            -   
+                name: failedProviderActionBhs
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionBhs
+            -   name: scheduleRun
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhone:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhone:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhone:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: askCompanyFutureActionBhs
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailBhs:
+                condition: "context.company"
+            finishAddPhone:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    stateCallApiEmailBhs:
+        action:
+            -
+                name: callApiAskingEmailBhs    
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result)
+                                
+        transitions:
+            failedEmailBhs:
+                condition: '!payload.result'
+            finishRecordUser:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    failedEmailBhs:
+        end: true
+        action:
+         - name: failApi
+    finishRecordUser:
+        action:
+            -
+                name: sendLinkFutureActionBhs
+            -
+                isNewAction: false
+                name: closeFutureActionBhs
+            -
+                isNewAction: false
+                name: closeLinkFutureActionBhs    
+        end: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    toAskEmailNoBhs:
+        action:
+            -   
+                name: askEmailFutureActionBhs
+
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmailNo:
+                condition: "context.email"
+            toAskEmailBhs:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmailNo:
+        action:
+            -   
+                name: askPhoneFutureActionBhs                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            finishAddPhoneNo:
+                condition: "context.phone"
+            finishAddEmail:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhoneNo:
+        action:
+            -
+                name: askCompanyFutureActionBhs
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailNoBhs:
+                condition: "context.company"
+            finishAddPhoneNo:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    stateCallApiEmailNoBhs:
+        action:
+            -
+                name: callApiAskingEmailNoBhs    
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result)
+                                
+        transitions:
+            failedEmailNoBhs:
+                condition: '!payload.result'
+            finishRecordUserNo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    failedEmailNoBhs:
+        end: true
+        action:
+         - name: failApi
+    finishRecordUserNo:
+        action:        
+            -
+                name: sendLinkFutureActionBhs
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureNoOption
+        transitions: 
+            toAskSubscribtionBhs:
+                condition: intent == "askSubscribtion"
+            toAskLastestInfoBhs:
+                condition: intent == "askLastestInfo"
+            initBenefitBhs:
+                fallback: true
+            style:
+                top: 80px
+                left: 484px
+    toAskSubscribtionBhs:
+        action:
+            -
+                name: closeFutureActionBhs
+            -
+                isNewAction: false
+                name: closeLinkFutureActionBhs
+        transitions: {}
+        end: true
+        style:  
+            top: 40px
+            left: 484px
+    toAskLastestInfoBhs:
+        action:
+            -
+                name: closeFutureActionBhs
+            -
+                isNewAction: false
+                name: closeLinkFutureActionBhs
+        transitions: {}
+        end: true
+        style:  
+            top: 40px
+            left: 484px
+actions:
+    failedProviderActionBhs:
+        type: text
+        options:
+            text: 'Nomor telephone yang anda masukan tidak valid. Tolong masukkan kembali nomor yang valid?'
+    scheduleRun:
+        type: schedule
+        options:
+            id: remind-me
+            command: add
+            message:
+                type: command
+                content: startScheduleRun
+            start: $(context.dateStart)
+            end: $(context.dateStart)
+            freqType: minute
+            freqInternal: 5
+    TopologyVideoBhs:
+        type: text
+        options:
+            text: https://www.youtube.com/watch?v=PIVNoRduDZg 
+        # type: template
+        # options:
+        #     type: video
+        #     items:
+        #         originalContentUrl: https://qubicle.id/temp/7bc39c68aa0981ca848fcae6061097a4.mp4
+        #         previewImageUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/uploads/images/20180524163248_5b06e930818e5.jpg
+    topologyTextBeforeVideoBhs:
+        type: text
+        options:
+            text: 'Via akan memutarkan video yang bisa menjelaskan lebih dalam mengenai IOT Control Center. '
+    topologyTextAfterVideoBhs:
+        type: text
+        options:
+            text: 'Ada beberapa hal lain yang dapat Anda pelajari lebih lanjut. Apa yang ingin Anda lihat terlebih dahulu?  '
+    callApiAfterVideoBhs:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: false
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/8 '
+    failApiAfterVideoBhs:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultAfterVideoBhs:
+        type: text
+        options:
+            text: $(result)
+    showCarouselAfterVideoBhs:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: postback
+                      label: pilih
+                      payload:
+                        type: $[payload]
+    callApi:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: false
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/4'
+    failApi:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResult:
+        type: text
+        options:
+            text: $(result)
+    showCarouselBenefitBhs:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: url
+                      label: pilih
+                      url: $[url]
+    showButtonChooseAnswerFutureOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: pilih
+                text: Apakah Anda ingin melakukan product trial?
+                actions:
+                    -
+                        type: postback
+                        label: Ya
+                        payload:
+                            type: one
+                    -
+                        type: postback
+                        label: Tidak
+                        payload:
+                            type: two
+    callApiBenefitFeatureBhs:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: false
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/5 '
+    failApiBenefitFeatureBhs:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultBenefitFeatureBhs:
+        type: text
+        options:
+            text: $(result)
+    showCarouselFeatureBhs:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: url
+                      label: pilih
+                      url: $[url]
+   
+    askEmailFutureActionBhs:
+        type: text
+        options:
+            text: ' Sebelum memberikan form registrasi, Via ingin mengetahui data diri Anda terlebih dahulu. Silahkan masukkan alamat email Anda (e.g abcde@example.com)  '
+    callApiAskingEmailBhs:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                email: $(context.email)
+                phone: $(context.phone)
+                company: $(context.company)
+                type: 2
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/lead/register '
+    callApiAskingEmailNoBhs:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                email: $(context.email)
+                phone: $(context.phone)
+                company: $(context.company)
+                type: 3
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/lead/register '
+    failApiAskingEmailBhs:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultAskingEmailBhs:
+        type: text
+        options:
+            text: $(result)
+    askPhoneFutureActionBhs:
+        type: text
+        options:
+            text: ' Email kamu,$(context.email).Terima kasih. Silahkan masukkan nomor telefon Anda (e.g 0812775820) '
+    askCompanyFutureActionBhs:
+        type: text
+        options:
+            text: ' Nomer telepon kamu,$(context.phone). Silahkan masukkan nama perusahaan Anda. (e.g PT. Naga Terbang)	'
+    sendLinkFutureActionBhs:
+        type: text
+        options:
+            text: " Nama perusahaan kamu, $(context.company). Anda sudah hampir selesai! Silahkan isi form registrasi di sini.\n https://telkomsel.m2m.com/form/referral/request "
+    closeFutureActionBhs:
+        type: text
+        options:
+            text: ' Terima kasih sudah bersedia berbicara dengan Via, senang bisa membantu Anda. Sampai jumpa.'
+    closeLinkFutureActionBhs:
+        type: text
+        options:
+            text: 'Anda juga bisa melihat produk lain dari kami di https://telkomseliot.com/fleesight	'
+    topologiImageBhs:
+        type: template
+        options:
+            type: image
+            items:
+                originalContentUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/Topology.jpg
+                previewImageUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/Topology.jpg
+    askEmailFutureActionNoBhs:
+        type: text
+        options:
+            text: ' Sebelum memberikan form registrasi, Via ingin mengetahui data diri Anda terlebih dahulu. Silahkan masukkan alamat email Anda (e.g abcde@example.com)  '
+    showButtonChooseAnswerFutureNoOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: pilih
+                text: Bagaimana kami bisa menghubungi Anda?
+                actions:
+                    -
+                        type: postback
+                        label: Berlangganan
+                        payload:
+                            type: ciek
+                    -
+                        type: postback
+                        label: Daftar Prospek
+                        payload:
+                            type: duwo
+
+methods: {}

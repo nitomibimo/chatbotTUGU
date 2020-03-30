@@ -1,0 +1,85 @@
+volatile: true
+intents:
+  init:
+    initial: true
+    type: command
+    condition: "content == 'startScheduleRun'"
+  mainMenuIntentBhs:
+    type: data
+    initial: false
+    fallback: false
+    condition: payload.lang=="satu"
+  ansSayNoIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: payload.lang=="tidak"
+states:
+  init:
+    initial: true
+    transitions:
+      deleteSchedule:
+        end: true
+
+  deleteSchedule:
+    initial: false
+    action:
+      - name: saySomething
+      - name: deleteSchedule
+      - isNewAction: false
+        name: buttonToMainMenuAction
+                        
+    transitions:
+      toMainMenu:
+        condition: intent == "mainMenuIntentBhs"
+      toEndState:
+        condition: intent == "ansSayNoIntent"
+                        
+  toMainMenu:
+    action:
+      - name: backtoMenuAction
+    end: true
+  toEndState:
+    action:
+      - name: actionClosePromoBhs
+    end: true
+
+actions:
+  saySomething:
+    type: text
+    options:
+      text: 
+          - 'Halo, TIA menunggu response kamu. Apakah masih ada yg ditanyakan ?'
+          #- 'Halo, TIA masih disini. Silahkan pilih jenis pertanyaan yang akan ditanyakan'
+          #- 'Halo, apa kamu masih aktif ? Silahkan pilih jenis pertanyaan yang akan ditanyakan'
+  buttonToMainMenuAction:
+    type: template
+    options:
+      type: button
+      items:
+        title: pilih
+        text: pilih
+        actions:
+        - type: postback
+          label: Ya, ke Menu Utama
+          payload:
+            lang: satu
+          text: Ya
+        - type: postback
+          label: Tidak
+          payload:
+            lang: tidak
+          text: Tidak
+  actionClosePromoBhs:
+    type: text
+    options:
+      text: 'Terimakasih sudah menghubungi TIA'
+  backtoMenuAction:
+    type: command
+    options:
+      command: backtoMenu
+  deleteSchedule:
+    type: schedule
+    options:
+      id : remind-me
+      command: remove

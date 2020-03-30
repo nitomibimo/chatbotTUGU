@@ -1,0 +1,615 @@
+active: true
+intents:
+    toGeneral:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toGeneral"
+    karirIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="karir"
+    networkIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="network"
+    annualIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="annual"
+    lainnyaIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="lainnya"
+    intentLainnya:
+        initial: false
+        type: text
+        classifier:
+            nlu: yesno
+            match: karir
+    intentSponsor:
+        initial: false
+        type: text
+        classifier:
+            nlu: yesno
+            match: sponsor
+    intentNetwork:
+        initial: false
+        type: text
+        classifier:
+            nlu: yesno
+            match: network
+    intentAnnual:
+        initial: false
+        type: text
+        classifier:
+            nlu: yesno
+            match: annual
+    toNetSbyBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="surabaya"
+    toNetBdgBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="bandung"
+    toNetMdnBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="medan"
+    toNetBlkBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="balikpapan"
+    toNetSmgBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="semarang"
+    toNetPlgBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="palembang"
+    toNetLpgBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="lampung"
+    toNetMksBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="makassar"
+    toNetHkgBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="hongkong"
+    toNetPkbBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="pekanbaru"
+    toNetDpsBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="denpasar"
+    toNetCrbBhs:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.cp=="cirebon"
+    status:
+        type: command
+        condition: content == "status"
+    reenter:
+        type: command
+        condition: content == "reenter"
+states:
+    init:
+        transitions:
+            chooseGeneral:
+                fallback: true
+        initial: true
+        style:
+            top: 110px
+            left: 87px
+    chooseGeneral:
+        enter: mapper
+        action:
+            -   name: scheduleRun
+            -   isNewAction: false
+                name: showButtonChooseIntroductionOption
+           
+        transitions:
+            toKarirBhs:
+                condition: intent == "karirIntent"
+            toNetworkBhs:
+                condition: intent == "networkIntent"
+            toAnnualBhs:
+                condition: intent == "annualIntent"
+            toLainnyaBhs:
+                condition: intent == "lainnyaIntent" 
+            init:
+                fallback: true
+        initial: true
+        style:
+            top: 110px
+            left: 87px
+    toKarirBhs:
+        action:
+            -
+                name: karirTextBhs
+            -   
+                name: backAgainAction
+                        
+        transitions: {}
+        end: true
+    toNetworkBhs:
+        action:
+            - name: buttonChooseSubNetOption                               
+        transitions:
+            toSurabaya:
+                condition: intent == "toNetSbyBhs"
+            toBandung:
+                condition: intent == "toNetBdgBhs"
+            toMedan:
+                condition: intent == "toNetMdnBhs"
+            toBalikpapan:
+                condition: intent == "toNetBlkBhs"
+            toSemarang:
+                condition: intent == "toNetSmgBhs"
+            toPalembang:
+                condition: intent == "toNetPlgBhs"
+            toLampung:
+                condition: intent == "toNetLpgBhs"
+            toMakassar:
+                condition: intent == "toNetMksBhs"
+            toHongkong:
+                condition: intent == "toNetHkgBhs"
+            toPekanbaru:
+                condition: intent == "toNetPkbBhs"
+            toDenpasar:
+                condition: intent == "toNetDpsBhs"
+            toCirebon:
+                condition: intent == "toNetCrbBhs"
+            toNetworkBhs:
+                fallback: true
+        style:
+            top: 110px
+            left: 87px
+    toSurabaya:
+        action:
+            -
+                name: sbyTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toBandung:
+        action:
+            -
+                name: bdgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toMedan:
+        action:
+            -
+                name: mdnTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toBalikpapan:
+        action:
+            -
+                name: blkppTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toSemarang:
+        action:
+            -
+                name: smgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toPalembang:
+        action:
+            -
+                name: plgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toLampung:
+        action:
+            -
+                name: lpgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toMakassar:
+        action:
+            -
+                name: mksTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toHongkong:
+        action:
+            -
+                name: hgkgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toPekanbaru:
+        action:
+            -
+                name: pkbTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toDenpasar:
+        action:
+            -
+                name: dpsTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toCirebon:
+        action:
+            -
+                name: cboTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toAnnualBhs:
+        action:
+            -
+                name: annualTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toLainnyaBhs:
+        action:
+            -
+                name: askLainnyaBhs
+        transitions:
+            ansKarirBhs:
+                condition: intent == "intentLainnya"
+            ansSponsorBhs:
+                condition: intent == "intentSponsor"
+            ansNetworkBhs:
+                condition: intent == "intentNetwork"
+            ansAnnualBhs:
+                condition: intent == "intentAnnual"
+            toLainnyaBhs:
+                fallback: true
+        style:
+            top: 110px
+            left: 87px
+    ansAnnualBhs:
+        action:
+            -
+                name: annualTextBhs
+            -
+                name: backAgainAction
+        end: true
+    ansKarirBhs:
+        action:
+            -
+                name: karirTextBhs
+            -
+                name: backAgainAction
+        end: true
+    ansSponsorBhs:
+        action:
+            -
+                name: sponsorTextBhs
+            -
+                name: backAgainAction
+        end: true
+    ansNetworkBhs:
+        action:
+            - name: buttonChooseSubNetOption                               
+        transitions:
+            toSurabayaLainnya:
+                condition: intent == "toNetSbyBhs"
+            toBandungLainnya:
+                condition: intent == "toNetBdgBhs"
+            toMedanLainnya:
+                condition: intent == "toNetMdnBhs"
+            toBalikpapanLainnya:
+                condition: intent == "toNetBlkBhs"
+            toSemarangLainnya:
+                condition: intent == "toNetSmgBhs"
+            toPalembangLainnya:
+                condition: intent == "toNetPlgBhs"
+            toLampungLainnya:
+                condition: intent == "toNetLpgBhs"
+            toMakassarLainnya:
+                condition: intent == "toNetMksBhs"
+            toHongkongLainnya:
+                condition: intent == "toNetHkgBhs"
+            toPekanbaruLainnya:
+                condition: intent == "toNetPkbBhs"
+            toDenpasarLainnya:
+                condition: intent == "toNetDpsBhs"
+            toCirebonLainnya:
+                condition: intent == "toNetCrbBhs"
+            ansNetworkBhs:
+                fallback: true
+        style:
+            top: 110px
+            left: 87px
+    toSurabayaLainnya:
+        action:
+            -
+                name: sbyTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toBandungLainnya:
+        action:
+            -
+                name: bdgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toMedanLainnya:
+        action:
+            -
+                name: mdnTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toBalikpapanLainnya:
+        action:
+            -
+                name: blkppTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toSemarangLainnya:
+        action:
+            -
+                name: smgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toPalembangLainnya:
+        action:
+            -
+                name: plgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toLampungLainnya:
+        action:
+            -
+                name: lpgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toMakassarLainnya:
+        action:
+            -
+                name: mksTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toHongkongLainnya:
+        action:
+            -
+                name: hgkgTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toPekanbaruLainnya:
+        action:
+            -
+                name: pkbTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toDenpasarLainnya:
+        action:
+            -
+                name: dpsTextBhs
+            -
+                name: backAgainAction
+        end: true
+    toCirebonLainnya:
+        action:
+            -
+                name: cboTextBhs
+            -
+                name: backAgainAction
+        end: true
+actions:
+    scheduleRun:
+        type: schedule
+        options:
+            id : remind-me
+            command: add
+            message:
+                type: command
+                content: startScheduleRun
+            start: $(context.dateStart)
+            end: $(context.dateStart)
+            freqType: minute
+            freqInterval: 5
+    karirTextBhs:
+        type: text
+        options:
+            text: 'Untuk informasi karir, kamu bisa cek di halaman karir ya. Atau kamu bisa klik link berikut: https://tugu.com/tentang-kami/lowongan'
+    showButtonChooseIntroductionOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: pilih
+                text: Apa yang ingin anda ketahui terlebih dahulu?
+                actions:
+                    -
+                        type: postback
+                        label: Karir
+                        payload:
+                            type: karir
+                    -
+                        type: postback
+                        label: Network
+                        payload:
+                            type: network
+                    -
+                        type: postback
+                        label: Annual Report
+                        payload:
+                            type: annual
+                    -
+                        type: postback
+                        label: Informasi Lainnya
+                        payload:
+                            type: lainnya
+    backAgainAction:
+        type: command
+        options:
+            command: backAgain
+    buttonChooseSubNetOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: pilih
+                text: Kamu mau tau cabang TUGU di Kota mana ?
+                actions:
+                    -
+                        type: postback
+                        label: Surabaya
+                        payload:
+                            cp: surabaya
+                    -
+                        type: postback
+                        label: Bandung
+                        payload:
+                            cp: bandung
+                    -
+                        type: postback
+                        label: Medan
+                        payload:
+                            cp: medan
+                    -
+                        type: postback
+                        label: Balikpapan
+                        payload:
+                            cp: balikpapan
+                    -
+                        type: postback
+                        label: Semarang
+                        payload:
+                            cp: semarang
+                    -
+                        type: postback
+                        label: Palembang
+                        payload:
+                            cp: palembang
+                    -
+                        type: postback
+                        label: Lampung
+                        payload:
+                            cp: lampung
+                    -
+                        type: postback
+                        label: Makassar
+                        payload:
+                            cp: makassar
+                    -
+                        type: postback
+                        label: Hong Kong
+                        payload:
+                            cp: hongkong
+                    -
+                        type: postback
+                        label: Pekanbaru
+                        payload:
+                            cp: pekanbaru
+                    -
+                        type: postback
+                        label: Denpasar
+                        payload:
+                            cp: denpasar
+                    -
+                        type: postback
+                        label: Cirebon Branch Office
+                        payload:
+                            cp: cirebon
+    sbyTextBhs:
+        type: text
+        options:
+            text: 'Wisma Tugu Darmo, Jl. Raya Darmo, No.64, Surabaya 60264'
+    bdgTextBhs:
+        type: text
+        options:
+            text: 'Jl. BKR No. 19 A RT.09 /RW.06, Kel Cijagra ,Kec. Lengkong, Bandung'
+    mdnTextBhs:
+        type: text
+        options:
+            text: 'Jl. Palang Merah No. 116 Medan, Indonesia 20112'
+    blkppTextBhs:
+        type: text
+        options:
+            text: 'Balikpapan Super Block Ruko E-11 Jl. Jenderal Sudirman No.47.  Balikpapan – 76114. Kalimantan Timur'
+    smgTextBhs:
+        type: text
+        options:
+            text: 'Jl.MT. Haryono No. 798B  Semarang timur 50124'
+    plgTextBhs:
+        type: text
+        options:
+            text: 'Komp. Pertamina Kenten, Jl. AKBP Cek Agus No.12, 8 Ilir, Ilir Timur II Kota Palembang, Sumatera Selatan 30114'
+    lpgTextBhs:
+        type: text
+        options:
+            text: 'Jalan jend. Sudirman No.23 C-D Kel. Enggal kec. Enggal Kota Bandar Lampung, Lampung 35118'
+    mksTextBhs:
+        type: text
+        options:
+            text: 'Jl. Lamaddukelleng Buntu No. 82 Kelurahan Kunjung Mae Kecamatan Mariso Kota Makassar 90113'
+    hgkgTextBhs:
+        type: text
+        options:
+            text: 'Tugu Insurance Company Ltd 28/F China Online Centre 333 Lockhart Road, Wanchai, Hong Kong'
+    pkbTextBhs:
+        type: text
+        options:
+            text: 'Sudirman  City Square Blok E01Jl. Jend.sudirman,Tangkerang Selatan Kota Pekanbaru'
+    dpsTextBhs:
+        type: text
+        options:
+            text: 'Jl.Gatot Subroto tengah No. 335 Denpasar,Bali'
+    cboTextBhs:
+        type: text
+        options:
+            text: 'Cirebon Super  Blok Office  park P10Jl. Dr Cipto Mangunkusumo No. 26'
+    annualTextBhs:
+        type: text
+        options:
+            text: 'Kamu bisa cek di halaman Annual Report ya. Atau Kamu bisa mengunduh laporan keuangan tahunan ataupun laporan tahunan Tugu Insurance di halaman https://tugu.com/investor-relations/laporan-tahunan '
+    askLainnyaBhs:
+        type: text
+        options:
+            text: 'Apa yang ingin anda ketahui?'
+    sponsorTextBhs:
+        type: text
+        options:
+            text: 'Jika kamu butuh informasi mengenai sponsorship dari Tugu Insurance, kamu bisa akses ke halaman ini google.com'
+methods: {}

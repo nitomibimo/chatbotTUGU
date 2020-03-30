@@ -1,0 +1,301 @@
+active: true
+expire: '5'
+intents:
+  init:
+    initial: true
+    type: text
+    classifier:
+      nlu: intentIntro
+      match: greet
+  toGreetingBhs:
+    type: command
+    initial: true
+    fallback: false
+    condition: content == "toGreetingBhs"
+  backtoMenu:
+    type: command
+    initial: true
+    fallback: false
+    condition: content == "backtoMenu"
+  addUser:
+    classifier:
+      nlu: trippytripnl
+    attributes:
+      person:
+        nlu: trippytripnl
+        path: kata
+  bahasaIntentIndo:
+    type: text
+    initial: false
+    fallback: false
+    classifier:
+      nlu: pilihBahasa
+      match: bahasaIndo
+  bahasaIntentEng:
+    type: text
+    initial: false
+    fallback: false
+    classifier:
+      nlu: pilihBahasa
+      match: bahasaEnglish
+  generalIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: 'payload.lang == "informasi"'
+  promoIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: 'payload.lang == "promo"'
+  claimIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: 'payload.lang == "claim"'
+  productIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: 'payload.lang == "product"'
+  liveIntent:
+    type: data
+    initial: false
+    fallback: false
+    condition: 'payload.lang == "live"'
+  reenter:
+    type: command
+    condition: content == "reenter"
+states:
+  init:
+    initial: true
+    transitions:
+      greeting:
+        fallback: false
+        condition: 'intent == "init" || intent == "toGreetingBhs" '
+      finishAddUser:
+        fallback: false
+        condition: 'intent == "backtoMenu"'
+  greeting:
+    enter: mapper
+    action:
+      -
+        name: scheduleRun
+      -
+        name: recordUser
+        condition: 'intent == "addUser" && attributes.person'
+      -
+        name: askUserName
+    transit:
+      context.name: "attributes.person || context.name"
+    transitions:
+      finishAddUser:
+        condition: 'context.name'
+      failedAddUser:
+        condition: "!context.name"
+      greeting:
+        fallback: false
+    initial: false
+  failedAddUser:
+    enter: mapper
+    action:
+      - name: scheduleRun
+      - name: recordUser
+        condition: "intent == 'addUser' && attributes.person"
+      - name: askUserName
+    transit:
+      context.name: "attributes.person || context.name"
+    transitions:
+      finishAddUser:
+        condition: 'context.name'
+      failedAddUser:
+        fallback: false
+  finishAddUser:
+    enter: mapper
+    action:
+      - name: scheduleRun
+      - name: responseAddUserName
+      - name: buttonChooseMainMenuAction
+    transitions:
+      generalInit:
+        condition: intent == "generalIntent"
+      promoInit:
+        condition: intent == "promoIntent"
+      claimInit:
+        condition: intent == "claimIntent"
+      productInit:
+        condition: intent == "productIntent"
+      liveInit:
+        condition: intent == "liveIntent"
+      finishAddUser:
+        fallback: true
+  generalInit:
+    action:
+      - isNewAction: false
+        name: toGeneralAction
+    transitions: {}
+    end: true
+  promoInit:
+    action:
+      - isNewAction: false
+        name: toPromoAction
+    transitions: {}
+    end: true
+  claimInit:
+    action:
+      - isNewAction: false
+        name: toClaimAction
+    transitions: {}
+    end: true
+  productInit:
+    action:
+      - isNewAction: false
+        name: toProductAction
+    transitions: {}
+    end: true
+  liveInit:
+    action:
+      - isNewAction: false
+        name: toLiveAction
+    transitions: {}
+    end: true
+actions:
+  scheduleRun:
+    type: schedule
+    options:
+      id : remind-me
+      command: add
+      message:
+          type: command
+          content: startScheduleRun
+      start: $(context.dateStart)
+      end: $(context.dateStart)
+      freqType: minute
+      freqInterval: 5
+  recordUser:
+    type: method
+    method: writeUser
+    options:
+      text: "Okay, you are being recorded"
+  greetingAction:
+    type: text
+    options:
+      text: 
+          - 'Halo selamat Datang!'
+          - 'Halo selamat Siang!'
+  preliminaryAction:
+    type: text
+    options:
+      text: Ini TIA, Tugu Insurance Assistance,
+  askUserName:
+    type: text
+    options:
+      text: 
+          - 'Halo selamat Siang!, Ini TIA, Tugu Insurance Assistance, TIA bicara dengan siapa ya ?'
+          - 'Halo selamat Datang!, Ini TIA, Tugu Insurance Assistance, TIA bicara dengan siapa ya ?'
+  askUserNameFalse:
+    type: text
+    options:
+      text: Maaf, TIA belum mengenali kamu.
+  responseAddUserName:
+    type: text
+    options:
+      text: 
+          - ' Halo, $(context.name). TIA bisa bantu apa? Silahkan pilih jenis pertanyaan yang akan ditanyakan '
+          - ' Halo, $(context.name). Senang bisa bertemu, TIA bisa bantu apa hari ini? Silahkan pilih jenis pertanyaan yang akan ditanyakan'
+  txtButtonName:
+    type: text
+    options:
+      text: 
+          - ' Silahkan pilih jenis pertanyaan yang akan ditanyakan '
+          - ' Silahkan pilih pertanyaan yang mau kamu tanyakan ya '
+  toGeneralAction:
+    type: command
+    options:
+      command: toGeneral
+  toPromoAction:
+    type: command
+    options:
+      command: toPromo
+  toClaimAction:
+    type: command
+    options:
+      command: toClaim
+  toProductAction:
+    type: command
+    options:
+      command: toProduct
+  toLiveAction:
+    type: command
+    options:
+      command: toLive
+  buttonChooseMainMenuAction:
+    type: template
+    options:
+      type: carousel
+      items:
+        - title: Informasi
+          text: 
+          thumbnailImageUrl: 'https://tugu.com/files/2020/01/Information.jpg'
+          actions:
+            - 
+              type: postback
+              label: Pilih Menu
+              payload:
+                lang: informasi
+              text: informasi
+        - title: Promo
+          text: 
+          thumbnailImageUrl: ' https://tugu.com/files/2020/01/promo.jpg'
+          actions:
+            - 
+              type: postback
+              label: Pilih Menu
+              payload:
+                lang: promo
+              text: promo
+        - title: Claim
+          text: 
+          thumbnailImageUrl: 'https://tugu.com/files/2020/01/Claim.jpg'
+          actions:
+            - 
+              type: postback
+              label: Pilih Menu
+              payload:
+                lang: claim
+              text: claim
+        - title: Product
+          text: 
+          thumbnailImageUrl: 'https://tugu.com/files/2020/01/Product.jpg'
+          actions:
+            - 
+              type: postback
+              label: Pilih Menu
+              payload:
+                lang: product
+              text: product
+        - title: Live Chat
+          text: 
+          thumbnailImageUrl: 'https://tugu.com/files/2020/01/Live-chat.png'
+          actions:
+            - 
+              type: postback
+              label: Pilih Menu
+              payload:
+                lang: live
+              text: live
+
+methods:
+  writeUser(message, context, data, options): "
+    let text = options.text || '';
+    let result = [];
+    for (let i in message.attributes) {
+      if (message.attributes[i])
+        result.push(message.attributes[i]);
+    }
+
+    return {
+      type: 'text',
+      content: text + ' ' + result.join(', ')
+    }
+  "

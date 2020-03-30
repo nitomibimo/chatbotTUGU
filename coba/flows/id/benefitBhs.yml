@@ -1,0 +1,697 @@
+        active: true
+        expire: '5'
+        intents:
+            toClaim:
+                type: command
+                initial: true
+                fallback: false
+                condition: content == "toClaim"
+            addLocation:
+                classifier:
+                    nlu: trippytripnl
+                attributes:
+                    location:
+                        nlu: trippytripnl
+                        path: kata
+            toHowClaimBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.op=="cara"
+            toListBengkelBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.op=="bengkel"
+            toClaimCorIntentBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.type=="korporat"
+            toClaimPerIntentBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.type=="personal"
+            toClaimSyaIntentBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.type=="syariah"
+            toClaimEnergiBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="energi"
+            toClaimKebarakanBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="kebakaran"
+            toClaimKelautanBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="kelautan"
+            toClaimPenerbanganBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="penerbangan"
+            toClaimRekayasaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="rekayasa"
+            toClaimKreditBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="kredit"
+            toClaimAnekaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="aneka"
+            toClaimKesehatanBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.answ=="kesehatan"
+            toClaimDriveBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.an=="drive"
+            toClaimRideBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.an=="ride"
+            #toClaimTravelaBhs:
+             #   type: data
+              #  initial: false
+               # fallback: false
+                #condition: payload.an=="travela"
+            #toClaimRumahBhs:
+             #   type: data
+              #  initial: false
+               # fallback: false
+                #condition: payload.an=="rumah"
+            toClaimFractureBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.an=="fracture"
+            toClaimHajiBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="haji"
+            toClaimUmrohBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="umroh"
+            toClaimDriveSyaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="kemudi"
+            toClaimRideSyaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="kendara"
+            toClaimRumahSyaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="bait"
+            toClaimTravelaSyaBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.dc=="rihlah"
+            status:
+                type: command
+                condition: content == "status"
+            reenter:
+                type: command
+                condition: content == "reenter"
+        states:
+            init:
+                transitions:
+                    showButtonClaim:
+                        fallback: true
+                initial: true
+                style:
+                    top: 110px
+                    left: 87px
+            showButtonClaim:
+                enter: mapper
+                action:
+                    -   name: scheduleRun
+                    -   name: actionHowToClaimBhs
+                    -   isNewAction: false
+                        name: buttonToClaimList
+                        
+                transitions:
+                    chooseClaim:
+                        condition: intent == "toHowClaimBhs"
+                    toListBeng:
+                        condition: intent == "toListBengkelBhs"
+                    showButtonClaim:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toListBeng:
+                action:
+                    - name: askLocName                               
+                transitions:
+                    finishAddLocation:
+                        condition: "intent == 'addLocation' && attributes.location"
+                        mapping:
+                            context.location: content
+            finishAddLocation:
+                enter: writeLoc
+                action:
+                    -
+                        name: responseAddLocNameMedan
+                        condition: 'context.location == "medan"' 
+                    -
+                        name: responseAddLocNameJkt
+                        condition: 'context.location == "jakarta"' 
+                    -   
+                        name: backAgainAction       
+                transitions: {}
+                end: true
+            chooseClaim:
+                enter: mapper
+                action:
+                    -   name: scheduleRun
+                    -   name: actionClaimBhs
+                    -   isNewAction: false
+                        name: buttonToClaimMenuAction
+                        
+                transitions:
+                    toKorporat:
+                        condition: intent == "toClaimCorIntentBhs"
+                    toPersonal:
+                        condition: intent == "toClaimPerIntentBhs"
+                    toSyariah:
+                        condition: intent == "toClaimSyaIntentBhs"
+                    chooseClaim:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toSyariah:
+                action:
+                    -   name: buttonChooseSyariahOption
+                transitions:
+                    toHaji:
+                        condition: intent == "toClaimHajiBhs"
+                    toUmroh:
+                        condition: intent == "toClaimUmrohBhs"
+                    toDriveSya:
+                        condition: intent == "toClaimDriveSyaBhs"
+                    toRideSya:
+                        condition: intent == "toClaimRideSyaBhs"
+                    toRumahSya:
+                        condition: intent == "toClaimRumahSyaBhs"
+                    toTravelaSya:
+                        condition: intent == "toClaimTravelaSyaBhs"
+                    toSyariah:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toHaji:
+                action:
+                    -   name: actionHajiClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toUmroh:
+                action:
+                    -   name: actionUmrohClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toDriveSya:
+                action:
+                    -   name: actionDriveSyaClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toRideSya:
+                action:
+                    -   name: actionRideSyaClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toRumahSya:
+                action:
+                    -   name: actionHomeSyaClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toTravelaSya:
+                action:
+                    -   name: actionTravelaSyaClaimBhs
+                    -   name: backAgainAction
+                end: true           
+
+            toPersonal:
+                action:
+                    -   name: buttonChoosePersonalOption
+                transitions:
+                    toDrive:
+                        condition: intent == "toClaimDriveBhs"
+                    toRide:
+                        condition: intent == "toClaimRideBhs"
+                    #toTravela:
+                     #   condition: intent == "toClaimTravelaBhs"
+                    #toRumah:
+                     #   condition: intent == "toClaimRumahBhs"
+                    toFracture:
+                        condition: intent == "toClaimFractureBhs"
+                    toPersonal:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toDrive:
+                action:
+                    -   name: actionDriveClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toRide:
+                action:
+                    -   name: actionRideClaimBhs
+                    -   name: backAgainAction
+                end: true
+            #toTravela:
+             #   action:
+              #      -   name: actionTravelaClaimBhs
+               #     -   name: backAgainAction
+                #end: true
+            #toRumah:
+             #   action:
+              #      -   name: actionHomeClaimBhs
+               #     -   name: backAgainAction
+                #end: true
+            toFracture:
+                action:
+                    -   name: actionFractureClaimBhs
+                    -   name: backAgainAction
+                end: true
+            
+            toKorporat:
+                action:
+                    -   name: buttonChooseCorporateOption
+                transitions:
+                    toEnergi:
+                        condition: intent == "toClaimEnergiBhs"
+                    toKebakaran:
+                        condition: intent == "toClaimKebarakanBhs"
+                    toKelautan:
+                        condition: intent == "toClaimKelautanBhs"
+                    toPenerbangan:
+                        condition: intent == "toClaimPenerbanganBhs"
+                    toRekayasa:
+                        condition: intent == "toClaimRekayasaBhs"
+                    toKredit:
+                        condition: intent == "toClaimKreditBhs"
+                    toAneka:
+                        condition: intent == "toClaimAnekaBhs"
+                    toKesehatan:
+                        condition: intent == "toClaimKesehatanBhs"
+                    toKorporat:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toEnergi:
+                action:
+                    -   name: actionEnergiClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toKebakaran:
+                action:
+                    -   name: actionKebakarClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toKelautan:
+                action:
+                    -   name: actionKelautClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toPenerbangan:
+                action:
+                    -   name: actionPenerbangClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toRekayasa:
+                action:
+                    -   name: actionRekClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toKredit:
+                action:
+                    -   name: actionKreClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toAneka:
+                action:
+                    -   name: actionAneClaimBhs
+                    -   name: backAgainAction
+                end: true
+            toKesehatan:
+                action:
+                    -   name: actionKesClaimBhs
+                    -   name: backAgainAction
+                end: true
+        actions:
+            backAgainAction:
+                type: command
+                options:
+                    command: backAgain
+            actionHowToClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim, jangan lupa persiapkan dokumen lengkap dan untuk prosedur lengkapnya, TIA hubungkan ke Live Chat dulu.'
+            buttonToClaimList:
+                type: template
+                options:
+                    type: button
+                    items:
+                        title: pilih
+                        text: Mana yang kamu ingin ketahui?
+                        actions:
+                        - 
+                          type: postback
+                          label: Tata Cara Klaim
+                          payload:
+                            op: cara
+                          
+                        - 
+                          type: postback
+                          label: List Bengkel
+                          payload:
+                            op: bengkel
+
+            actionClaimBhs:
+                type: text
+                options:
+                    text: 'Kamu mau claim asuransi apa?'
+            buttonToClaimMenuAction:
+                type: template
+                options:
+                    type: button
+                    items:
+                        title: pilih
+                        text: Berikut Jenis Asuransi
+                        actions:
+                        - 
+                          type: postback
+                          label: Korporat
+                          payload:
+                            type: korporat
+                          
+                        - 
+                          type: postback
+                          label: Personal
+                          payload:
+                            type: personal
+                          
+                        - 
+                          type: postback
+                          label: Syariah
+                          payload:
+                            type: syariah
+                          
+            buttonChooseCorporateOption:
+                type: template
+                options:
+                    type: carousel
+                    items:
+                        - title: Energi
+                          text: Perlindungan komprehensif terhadap aset operasional perusahaan yang bergerak di bidang energi offshore dan onshore atas risiko yang mungkin terjadi di masa mendatang.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/energi-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: energi
+                        - title: Kebakaran & Properti
+                          text: Menawarkan jaminan risiko kerugian atas aset, bangunan, serta isi bangunan perusahaan.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/kebakaran-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: kebakaran
+                        - title: Kelautan
+                          text: Perlindungan menyeluruh mulai dari pembangunan rangka kapal laut, hingga kegiatan pengangkutan barang yang dilakukan di laut.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/kelautan-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: kelautan
+                        - title: Penerbangan & Satelit
+                          text: Memberikan perlindungan terhadap berbagai risiko dalam aktivitas penerbangan dan peluncuran satelit.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/penerbangan-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: penerbangan
+                        - title: Rekayasa
+                          text: Menjamin ganti rugi atas terhambatnya proyek bangunan dalam masa konstruksi, serta kerusakan peralatan elektronik akibat kecelakaan.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/rekayasa-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: rekayasa
+                        - title: Kredit & Penjaminan
+                          text: Memberikan perlindungan kepada tertanggung atas risiko kegagalan debitur melunasi suatu fasilitas kredit.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/kredit-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: kredit
+                        - title: Aneka
+                          text: Memberi jaminan perlindungan tuntutan dari pihak ketiga, risiko kerugian keuangan, dan biaya ganti rugi atas kerugian dan kerusakan pada barang-barang berharga akibat perampokan yang disertai dengan tindak kekerasan/pemaksaan.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/aneka-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: aneka
+                        - title: Kesehatan
+                          text: Menawarkan perlindungan kesehatan secara menyeluruh untuk karyawan di perusahaan.
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/kesehatan-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    answ: kesehatan
+            actionEnergiClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Energi caranya ada di sini: google.com'
+            actionKebakarClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kebakaran & Properti caranya ada di sini: google.com'
+            actionKelautClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kelautan caranya ada di sini: google.com'
+            actionPenerbangClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Penerbangan & Satelit caranya ada di sini: google.com'
+            actionRekClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Rekayasa caranya ada di sini: google.com'
+            actionKreClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kredit & Penjaminan caranya ada di sini: google.com'
+            actionAneClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Aneka caranya ada di sini: google.com'
+            actionKesClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kesehatan caranya ada di sini: google.com'
+            buttonChoosePersonalOption:
+                type: template
+                options:
+                    type: carousel
+                    items:
+                        - title: t drive
+                          text: Asuransi mobil gak pake ribet, pake t drive. Semua kerusakan mobil kamu akan kami ganti rugi
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/tdrive-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    an: drive
+                        - title: t ride
+                          text: Asuransi motor dengan premi yang ramah dikantong, pasti terjamin pembayaran klaimnya
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/tride-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    an: ride
+                         #   -
+                          #      type: postback
+                           #     label: t travela
+                            #    payload:
+                             #       an: travela
+                           # -
+                            #    type: postback
+                             #   label: t home
+                              #  payload:
+                               #     an: rumah
+                        - title: t fracture
+                          text: Menanggung biaya pengobatan medis & tradisional untuk tulang retak dan patah akibat kecelakaan
+                          thumbnailImageUrl: 'https://tugu.com/files/2020/03/tfracture-chatbot.png'
+                          actions:
+                            -
+                                type: postback
+                                label: pilih
+                                payload:
+                                    an: fracture
+            actionDriveClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi t drive caranya ada di sini: google.com'
+            actionRideClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi t ride caranya ada di sini: google.com'
+            actionTravelaClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi t travela caranya ada di sini: google.com'
+            actionHomeClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi t home caranya ada di sini: google.com'
+            actionFractureClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi t fracture caranya ada di sini: google.com'
+            buttonChooseSyariahOption:
+                type: template
+                options:
+                    type: button
+                    items:
+                        title: pilih
+                        text: Jenis Asuransi?
+                        actions:
+                            -
+                                type: postback
+                                label: asuransi kecelakaan haji
+                                payload:
+                                    dc: haji
+                            -
+                                type: postback
+                                label: asuransi kecelakaan umroh
+                                payload:
+                                    dc: umroh
+                            -
+                                type: postback
+                                label: t drive syariah
+                                payload:
+                                    dc: kemudi
+                            -
+                                type: postback
+                                label: t ride syariah
+                                payload:
+                                    dc: kendara
+                            -
+                                type: postback
+                                label: t home syariah
+                                payload:
+                                    dc: bait
+                            -
+                                type: postback
+                                label: t travela syariah
+                                payload:
+                                    dc: rihlah
+                            
+            actionHajiClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kecelakaan Haji caranya ada di sini: google.com'
+            actionUmrohClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi Kecelakaan Umroh caranya ada di sini: google.com'               
+            actionDriveSyaClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi T Drive Syariah caranya ada di sini: google.com'
+            actionRideSyaClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi T Ride Syariah caranya ada di sini: google.com'
+            actionHomeSyaClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi T Home Syariah caranya ada di sini: google.com'
+            actionTravelaSyaClaimBhs:
+                type: text
+                options:
+                    text: 'Untuk klaim Asuransi T Travela Syariah caranya ada di sini: google.com'
+    
+            askLocName:
+                type: text
+                options:
+                    text: Kamu mau tau bengkel TUGU di Kota mana ?
+            responseAddLocNameMedan:
+                type: text
+                options:
+                    text: "Untuk Wilayah $(context.location), kamu bisa kunjungi Jl. Palang Merah No. 116 Medan. Kamu bisa cek juga di halaman berikut google.com untuk informasi lengkap terkait Cabang dan tshop"
+            responseAddLocNameJkt:
+                type: text
+                options:
+                    text: "Untuk Wilayah $(context.location), kamu bisa kunjungi Jl. Palang Merah No. 116 Jakarta. Kamu bisa cek juga di halaman berikut google.com untuk informasi lengkap terkait Cabang dan tshop"
+            actionListBengBhs:
+                type: text
+                options:
+                    text: 'Kita Ada Bengkel di Jakarta, Medan'
+            toMainMenuActionBhs:
+                type: command
+                options:
+                    command: toGreetingBhs
+            scheduleRun:
+                type: schedule
+                options:
+                    id : remind-me
+                    command: add
+                    message:
+                        type: command
+                        content: startScheduleRun
+                    start: $(context.dateStart)
+                    end: $(context.dateStart)
+                    freqType: minute
+                    freqInterval: 5

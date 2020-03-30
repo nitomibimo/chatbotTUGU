@@ -1,0 +1,82 @@
+        active: true
+        expire: '5'
+        intents:
+            toPromo:
+                type: command
+                initial: true
+                fallback: false
+                condition: content == "toPromo"
+            status:
+                type: command
+                condition: content == "status"
+            reenter:
+                type: command
+                condition: content == "reenter"
+        states:
+            init:
+                transitions:
+                    stateCallApi:
+                        fallback: true
+                initial: true
+                style:
+                    top: 110px
+                    left: 87px
+            stateCallApi:
+                action:
+                    -   name: callApi
+                    -   name: handleResult
+                transitions:
+                    choosePromo:
+                        condition: intent == "status" && !payload.result
+                    finishBeforeVideo:
+                        condition: intent == "status" && payload.result
+                    stateCallApi:
+                        fallback: true
+            finishBeforeVideo:
+                action:
+                    -   name: showAPIResult
+                end: true
+            choosePromo:
+                enter: mapper
+                action:
+                    -   name: scheduleRun
+                    -   name: actionPromoBhs
+                    -   name: backAgainAction
+                transitions: {}
+                end: true
+        actions:
+            callApi:
+                type: api
+                options:
+                    method: GET
+                    uri: 'https://retail.tugu.com/api/v1/custompost?type=promo&per_page=4'
+            handleResult:
+                type: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+            showAPIResult:
+                type: text
+                options:
+                    data: $(result)
+            actionPromoBhs:
+                type: text
+                options:
+                    text: 'Maaf, kita belum ada promo nih'
+            backAgainAction:
+                type: command
+                options:
+                    command: backAgain
+            scheduleRun:
+                type: schedule
+                options:
+                    id : remind-me
+                    command: add
+                    message:
+                        type: command
+                        content: startScheduleRun
+                    start: $(context.dateStart)
+                    end: $(context.dateStart)
+                    freqType: minute
+                    freqInterval: 5

@@ -1,0 +1,31 @@
+active: true
+expire: '5'
+intents:
+    toLive:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toLive"
+states:
+    init:
+        initial: true
+        transitions:
+            other:
+                fallback: true
+        style:
+            top: 150px
+            left: 151px
+    other:
+        action: saySorryAction
+        transitions: {}
+        end: true
+        style:
+            top: 149px
+            left: 316px
+actions:
+    saySorryAction:
+        type: text
+        options:
+            text: 
+                - ' Tunggu Sebentar yaa TIA alihkan Ke CS '
+methods: {}

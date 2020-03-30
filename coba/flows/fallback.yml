@@ -1,0 +1,30 @@
+active: true
+fallback: true
+intents:
+    fallbackIntent:
+        type: text
+        initial: false
+        fallback: true
+states:
+    init:
+        initial: true
+        transitions:
+            other:
+                fallback: true
+        style:
+            top: 150px
+            left: 151px
+    other:
+        action: saySorryAction
+        transitions: {}
+        end: true
+        style:
+            top: 149px
+            left: 316px
+actions:
+    saySorryAction:
+        type: text
+        options:
+            text: 
+                - ' Mohon maaf, TIA belum mengerti apa yang Bapak / Ibu maksud. '
+methods: {}

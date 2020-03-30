@@ -1,0 +1,144 @@
+        active: true
+        expire: '5'
+        intents:
+            backToFirst:
+                initial: true
+                type: text
+                classifier:
+                    nlu: intentBack
+                    match: baik
+            backAgain:
+                type: command
+                initial: true
+                fallback: false
+                condition: content == "backAgain"
+            mainMenuIntentBhs:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.lang=="satu"
+            ansSayNoIntent:
+                type: data
+                initial: false
+                fallback: false
+                condition: payload.lang=="tidak"
+            status:
+                type: command
+                condition: content == "status"
+            reenter:
+                type: command
+                condition: content == "reenter"
+        states:
+            init:
+                transitions:
+                    chooseMenu:
+                        fallback: true
+                initial: true
+                style:
+                    top: 110px
+                    left: 87px
+            chooseMenu:
+                enter: mapper
+                action:
+                    -   name: scheduleRun
+                    -   name: responseButtonName
+                    -   isNewAction: false
+                        name: buttonToMainMenuAction
+                        
+                transitions:
+                    toMainMenu:
+                        condition: intent == "mainMenuIntentBhs"
+                    toEndState:
+                        condition: intent == "ansSayNoIntent"
+                    chooseMenu:
+                        fallback: true
+                style:
+                    top: 110px
+                    left: 87px
+            toMainMenu:
+                action:
+                    -
+                        name: backtoMenuAction
+                end: true
+            toEndState:
+                action:
+                    -   
+                        name: actionClosePromoBhs
+                transitions: 
+                    backMenuUser:
+                     condition: 'intent == "backToFirst"'
+            backMenuUser:
+                action:
+                    - 
+                        isNewAction: false
+                        name: toFirstAction
+                transitions: {}
+                end: true
+        actions:
+            buttonToMainMenuAction:
+                type: template
+                options:
+                    type: button
+                    items:
+                        title: pilih
+                        text: pilih
+                        actions:
+                        - type: postback
+                          label: Ya
+                          payload:
+                            lang: satu
+                          text: Ya
+                        - type: postback
+                          label: Tidak
+                          payload:
+                            lang: tidak
+                          text: Tidak
+            responseButtonName:
+                type: text
+                options:
+                    text: 
+                        - ' Apakah ada lagi yang bisa TIA bantu ? '
+                        - ' Apakah ada lagi yang ingin ditanyakan ? '
+            actionClosePromoBhs:
+                type: text
+                options:
+                    text: 'Kalo kamu butuh bantuan seputar info Tugu Insurance, langsung sapa TIA aja'
+            backtoMenuAction:
+                type: command
+                options:
+                    command: backtoMenu
+            toFirstAction:
+                type: command
+                options:
+                    command: toGreetingBhs
+            recordUser:
+                type: method
+                method: writeUser
+                options:
+                    text: "Okay, you are being recorded"
+            scheduleRun:
+                type: schedule
+                options:
+                    id : remind-me
+                    command: add
+                    message:
+                        type: command
+                        content: startScheduleRun
+                    start: $(context.dateStart)
+                    end: $(context.dateStart)
+                    freqType: minute
+                    freqInterval: 5
+        methods:
+            writeUser(message, context, data, options): "
+                let text = options.text || '';
+                let result = [];
+                for (let i in message.attributes) {
+                if (message.attributes[i])
+                    result.push(message.attributes[i]);
+                }
+
+                return {
+                type: 'text',
+                content: text + ' ' + result.join(', ')
+                }
+            "

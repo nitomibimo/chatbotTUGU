@@ -1,0 +1,806 @@
+active: true
+intents:
+    toTopologyEng:
+        type: command
+        initial: true
+        fallback: false
+        condition: content == "toTopologyEng"
+    benefitIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="satu"
+    featureIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="dua"
+    trialIntent:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="tiga"
+    email:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "email"
+        attributes:
+            email:
+                nlu: telkomseliotnl
+                path: email
+    phone:
+        classifier:
+            nlu: phonenumber
+        attributes:
+            phone:
+                nlu: phonenumber
+    company:
+        classifier:
+            nlu: telkomseliotnl
+            expression: "kantor"
+        attributes:
+            kantor:
+                nlu: telkomseliotnl
+                path: kantor
+    reenter:
+        type: command
+        condition: content == "reenter"
+    askTrialYes:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="one"
+    askTrialNo:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="two"
+    askSubscribtion:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="ciek"
+    askLastestInfo:
+        type: data
+        initial: false
+        fallback: false
+        condition: payload.type=="duwo"
+    status:
+        type: command
+        condition: content == "status"
+states:
+    initTopologyEng:
+        action:
+            -  
+                name: topologiImageEng
+            -
+                isNewAction: false
+                name: topologyTextBeforeVideoEng
+            -   
+                isNewAction: false
+                name: TopologyVideoEng
+            -   
+                isNewAction: false
+                name: callApiAfterVideoEng
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)            
+        transit:
+            context.result: 'null'
+        transitions:
+            failedAfterVideo:
+                condition: '!payload.result'
+            finishAfterVideo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishAfterVideo:
+        enter: mapper    
+        action:
+            -
+                name: scheduleRun
+            -   
+                isNewAction: false
+                name: topologyTextAfterVideoEng
+            -   
+                isNewAction: false
+                name: showCarouselAfterVideoEng
+        transitions:
+            toActionFeatureFeatureEng:
+                condition: intent == "benefitIntent"
+            toActionFeatureTopologyEng:
+                condition: intent == "featureIntent"
+            toActionFeatureTrialEng:
+                condition: intent == "trialIntent"
+            initTopologyEng:
+                fallback: true
+        initial: true
+        style:
+            top: 110px
+            left: 87px
+    toActionFeatureFeatureEng:
+        action:
+            -
+                name: callApi
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedBeforeVideo:
+                condition: '!payload.result'
+            finishBenefit:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishBenefit:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun       
+            -
+                name: showCarouselBenefitEng
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureOption
+        transitions: 
+            toAskEmailEng:
+                condition: intent == "askTrialYes"
+            toAskEmailNoEng:
+                condition: intent == "askTrialNo"
+            initTopologyEng:
+                fallback: true
+        style:
+            top: 80px
+            left: 484px
+    toActionFeatureTopologyEng:
+        action:
+            -
+                name: callApiBenefitFeatureEng
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result.data)
+                                
+        transitions:
+            failedBeforeVideo:
+                condition: '!payload.result'
+            finishBeforeVideo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    finishBeforeVideo:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun       
+            -
+                name: showCarouselFeatureEng
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureOption
+        transitions: 
+            toAskEmailEng:
+                condition: intent == "askTrialYes"
+            toAskEmailNoEng:
+                condition: intent == "askTrialNo"
+            initTopologyEng:
+                fallback: true
+        style:
+            top: 80px
+            left: 484px
+    toActionFeatureTrialEng:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -   
+                name: askEmailFutureActionEng
+
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmailTrial:
+                condition: "context.email"
+            toAskEmailEng:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmailTrial:
+        enter: mapper
+        action:
+            -   name: askPhoneFutureActionEng
+            -   name: scheduleRun                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhoneTrial:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhoneTrial:
+                condition: "context.phone"
+            finishAddEmailTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhoneTrial:
+        enter: mapper
+        action:
+            -   
+                name: failedProviderActionEng
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionEng
+            -   name: scheduleRun
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhoneTrial:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhoneTrial:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhoneTrial:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: askCompanyFutureActionEng
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailEng:
+                condition: "context.company"
+            finishaddphoneTrial:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    toAskEmailEng:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -   
+                name: askEmailFutureActionEng
+
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmail:
+                condition: "context.email"
+            toAskEmailEng:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmail:
+        enter: mapper
+        action:
+            -   name: askPhoneFutureActionEng
+            -   name: scheduleRun                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhone:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhone:
+                condition: "context.phone"
+            finishAddEmail:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhone:
+        enter: mapper
+        action:
+            -   
+                name: failedProviderActionEng
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionEng
+            -   name: scheduleRun
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhone:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhone:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhone:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: askCompanyFutureActionEng
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailEng:
+                condition: "context.company"
+            finishAddPhone:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    stateCallApiEmailEng:
+        action:
+            -
+                name: callApiAskingEmailEng    
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result)
+                                
+        transitions:
+            failedEmailEng:
+                condition: '!payload.result'
+            finishRecordUser:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    failedEmailEng:
+        end: true
+        action:
+         - name: failApi
+    finishRecordUser:
+        action:
+            -
+                name: sendLinkFutureActionEng
+            -
+                isNewAction: false
+                name: closeFutureActionEng
+            -
+                isNewAction: false
+                name: closeLinkFutureActionEng    
+        end: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    toAskEmailNoEng:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -   
+                name: askEmailFutureActionNoEng
+                
+        transit:
+            context.email: "attributes.email || null"
+
+        transitions:
+            finishAddEmailNo:
+                condition: "context.email"
+            toAskEmailEng:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    
+    finishAddEmailNo:
+        enter: mapper
+        action:
+            -   name: askPhoneFutureActionEng
+            -   name: scheduleRun                
+        transit:
+            context.phone: "attributes.phone || null"
+
+        transitions:
+            failedAddPhoneNo:
+                condition: "context.phone == 'invalid_phone_provider'"
+                mapping: 
+                    context.phone: 'null'
+            finishAddPhoneNo:
+                condition: "context.phone"
+            finishAddEmailNo:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    failedAddPhoneNo:
+        enter: mapper
+        action:
+            -   
+                name: failedProviderActionEng
+            -   
+                isNewAction: false
+                name: askPhoneFutureActionEng
+            -   name: scheduleRun
+                                
+        transit:
+            context.phone: "attributes.phone || null"
+        transitions:
+            finishAddPhoneNo:
+                condition: "context.phone && (context.phone != 'invalid_phone_provider') "
+            failedAddPhoneNo:
+                fallback: true 
+                mapping: 
+                    context.phone: 'null'
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    finishAddPhoneNo:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun
+            -
+                name: askCompanyFutureActionEng
+                
+        transit:
+            context.company: "attributes.kantor || null"
+
+        transitions:
+            stateCallApiEmailNoEng:
+                condition: "context.company"
+            finishAddPhoneNo:
+                fallback: true
+        initial: false
+        style:
+            top: 151px
+            left: 151px
+    stateCallApiEmailNoEng:
+        action:
+            -
+                name: callApiAskingEmailNoEng    
+            -
+                name: command
+                options:
+                    command: status
+                    payload:
+                        result: $(result)
+                                
+        transitions:
+            failedEmailNoEng:
+                condition: '!payload.result'
+            finishRecordUserNo:
+                condition: 'payload.result'
+                mapping:
+                    context.result: payload.result
+    failedEmailNoEng:
+        end: true
+        action:
+         - name: failApi
+    finishRecordUserNo:
+        enter: mapper
+        action:
+            -
+                name: scheduleRun        
+            -
+                name: sendLinkFutureActionEng
+            -
+                isNewAction: false
+                name: showButtonChooseAnswerFutureNoOption
+        transitions: 
+            toAskSubscribtionEng:
+                condition: intent == "askSubscribtion"
+            toAskLastestInfoEng:
+                condition: intent == "askLastestInfo"
+            initBenefitEng:
+                fallback: true
+            style:
+                top: 80px
+                left: 484px
+    toAskSubscribtionEng:
+        action:
+            -
+                name: closeFutureActionEng
+            -
+                isNewAction: false
+                name: closeLinkFutureActionEng
+        transitions: {}
+        end: true
+        style:  
+            top: 40px
+            left: 484px
+    toAskLastestInfoEng:
+        action:
+            -
+                name: closeFutureActionEng
+            -
+                isNewAction: false
+                name: closeLinkFutureActionEng
+        transitions: {}
+        end: true
+        style:  
+            top: 40px
+            left: 484px
+actions:
+    failedProviderActionEng:
+        type: text
+        options:
+            text: 'You have entered an invalid phone number. Could you please re-enter a valid phone number?'
+    TopologyVideoEng:
+        type: text
+        options:
+            text:  https://www.youtube.com/watch?v=9kjmlO29Wd4  
+        # type: template
+        # options:
+        #     type: video
+        #     items:
+        #         originalContentUrl: https://qubicle.id/temp/7bc39c68aa0981ca848fcae6061097a4.mp4
+        #         previewImageUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/uploads/images/20180524163248_5b06e930818e5.jpg
+    topologyTextBeforeVideoEng:
+        type: text
+        options:
+            text: 'Thank you for your interest in exploring further about IoT Control Center. Here is a video with more information about our product. '
+    topologyTextAfterVideoEng:
+        type: text
+        options:
+            text: 'There are more that you may be interested in. What would you like to view first? '
+    callApiAfterVideoEng:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: true
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/8 '
+    failApiAfterVideoEng:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultAfterVideoEng:
+        type: text
+        options:
+            text: $(result)
+    showCarouselAfterVideoEng:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: postback
+                      label: choose
+                      payload:
+                        type: $[payload]
+    callApi:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: true
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/4'
+    failApi:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResult:
+        type: text
+        options:
+            text: $(result)
+    showCarouselBenefitEng:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: url
+                      label: choose
+                      url: $[url]
+    showButtonChooseAnswerFutureOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: choose
+                text: Would you like to do a trial?
+                actions:
+                    -
+                        type: postback
+                        label: Yeah
+                        payload:
+                            type: one
+                    -
+                        type: postback
+                        label: No,Thanks
+                        payload:
+                            type: two
+    callApiBenefitFeatureEng:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                limit_start: 0
+                limit_end: 10
+                sort_type: asc
+                english: true
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/kataContent/list/5 '
+    failApiBenefitFeatureEng:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultBenefitFeatureEng:
+        type: text
+        options:
+            text: $(result)
+    showCarouselFeatureEng:
+        type: template
+        options:
+            type: carousel
+            data: $(context.result)
+            template:
+                title: "$[title]"
+                text: "$[text]"
+                thumbnailImageUrl: "$[image_url]"
+                url: "$[url]"
+                actions:
+                    - type: url
+                      label: choose
+                      url: $[url]
+   
+    askEmailFutureActionEng:
+        type: text
+        options:
+            text: ' Before we continue, I will need you to input your contact information. Please enter your email address below (e.g abcde@example.com) '
+    callApiAskingEmailEng:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                email: $(context.email)
+                phone: $(context.phone)
+                company: $(context.company)
+                type: 2
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/lead/register '
+    callApiAskingEmailNoEng:
+        type: api
+        options:
+            method: POST
+            headers:
+                api_id: 1
+                api_secret: 99D7DA33AF1E8AB66722586237C00657CF3902BEF7FC39522178AE857F144C06
+            body:
+                email: $(context.email)
+                phone: $(context.phone)
+                company: $(context.company)
+                type: 3
+            uri: 'http://developer.api.chatbot-iot.dev.codigo.id/lead/register '
+    failApiAskingEmailEng:
+        type: text
+        options:
+            text: Gagal call API
+    showAPIResultAskingEmailEng:
+        type: text
+        options:
+            text: $(result)
+    askPhoneFutureActionEng:
+        type: text
+        options:
+            text: ' Your email,$(context.email).Please enter your phone number. (e.g 0812775820) '
+    askCompanyFutureActionEng:
+        type: text
+        options:
+            text: ' Your phone number,$(context.phone). Please provide the name of your company (e.g PT. Naga Terbang)	'
+    sendLinkFutureActionEng:
+        type: text
+        options:
+            text: " Your company name, $(context.company). You are almost done! Please fill in the trial form here.\n https://telkomsel.m2m.com/form/referral/request"
+    closeFutureActionEng:
+        type: text
+        options:
+            text: ' Thank you for taking your time to talk to Via. It was a pleasure to assist you and I hope to speak to you again soon.'
+    closeLinkFutureActionEng:
+        type: text
+        options:
+            text: 'For information on our other products, visit https://telkomseliot.com/fleesight	'
+    topologiImageEng:
+        type: template
+        options:
+            type: image
+            items:
+                originalContentUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/Topology.jpg
+                previewImageUrl: http://developer.web.chatbot-iot.dev.codigo.id/assets/images/ChatbotDesign/JPG/Topology.jpg
+    askEmailFutureActionNoEng:
+        type: text
+        options:
+            text: ' Very well. However, if you would like to receive information and updates about our products, please provide your contact information. Type in your email address below (e.g abcde@gmail.com) '
+    showButtonChooseAnswerFutureNoOption:
+        type: template
+        options:
+            type: button
+            items:
+                title: choose
+                text: What to choose?
+                actions:
+                    -
+                        type: postback
+                        label: Subscribtion
+                        payload:
+                            type: ciek
+                    -
+                        type: postback
+                        label: Lastest Info
+                        payload:
+                            type: duwo
+    scheduleRun:
+        type: schedule
+        options:
+            id: remind-me
+            command: add
+            message:
+                type: command
+                content: startScheduleRun
+            start: $(context.dateStart)
+            end: $(context.dateStart)
+            freqType: minute
+            freqInternal: 5
+
+methods: {}
